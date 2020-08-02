@@ -105,3 +105,51 @@ def maxProfit_2(prices):
         dp[i][1][2] = float('-inf')
     return max(dp[-1][0])
 print(maxProfit_2([3,3,5,0,0,3,1,4]))
+
+
+def maxProfit_k(prices, k=2):
+    if not prices: return 0
+    n = len(prices)
+    if k>=n//2:
+        # 问题退化为不限次数的股票交易问题
+        """
+        max_profit = 0
+        for i in range(1, n):
+            if prices[i]-prices[i-1]>0:
+                max_profit += prices[i]-prices[i-1]
+        return max_profit
+        """
+        dp = [[0, 0] for _ in range(n)]
+        dp[0][0], dp[0][1] = 0, -prices[0]
+        for i in range(1, n):
+            dp[i][0] = max(dp[i-1][0], dp[i-1][1]+prices[i])
+            dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i])
+        return dp[-1][0]
+    else:
+        # 限制次数的股票交易
+        dp = [[[0, 0] for _ in range(k+1)] for _ in range(n)]
+
+        # dp数组初始化
+        dp[0][0][0] = 0
+        dp[0][0][1] = -prices[0]
+
+        for i in range(1, k+1):
+            dp[0][i][0] = 0
+            dp[0][i][1] = -prices[0]
+
+        for i in range(1, n):
+            dp[i][0][0] = 0
+            dp[i][0][1] = -prices[i]
+
+        for i in range(1, n):
+            for j in range(1, k+1):
+                dp[i][j][0] = max(dp[i-1][j][0], dp[i-1][j][1]+prices[i])
+                dp[i][j][1] = max(dp[i-1][j][1], dp[i-1][j][0]-prices[i])
+
+        max_profit = 0
+        for k in range(1, k+1):
+            max_profit = max(max_profit, dp[-1][k][0])
+        return max_profit
+
+print(maxProfit_k([3,2,6,5,0,3], k = 3))
+
