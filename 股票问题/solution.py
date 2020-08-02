@@ -19,7 +19,7 @@ def maxProfit_1(prices):
         min_price = min(min_price, price)
     return max_profit
 
-print(maxProfit_1([7,1,5,3,6,4]))
+# print(maxProfit_1([7,1,5,3,6,4]))
 
 
 def maxProfit_1_dp(prices):
@@ -40,7 +40,7 @@ def maxProfit_1_dp(prices):
         dp[i][2] = max(dp[i-1][2], dp[i-1][1]+prices[i])
     return dp[-1][2]
 
-print(maxProfit_1_dp([7,1,5,3,6,4]))
+# print(maxProfit_1_dp([7,1,5,3,6,4]))
 
 
 def maxProfit_n(prices):
@@ -55,7 +55,7 @@ def maxProfit_n(prices):
         if prices[i]>prices[i-1]:
             max_profit += prices[i]-prices[i-1]
     return max_profit
-print(maxProfit_n([7,1,5,3,6,4]))
+# print(maxProfit_n([7,1,5,3,6,4]))
 
 def maxProfit_n_dp(prices):
     """
@@ -71,7 +71,7 @@ def maxProfit_n_dp(prices):
         dp[i][0] = max(dp[i-1][0], dp[i-1][1]+prices[i])
         dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i])
     return dp[-1][0]
-print(maxProfit_n_dp([7,1,5,3,6,4]))
+# print(maxProfit_n_dp([7,1,5,3,6,4]))
 
 
 def maxProfit_2(prices):
@@ -104,7 +104,7 @@ def maxProfit_2(prices):
         dp[i][1][1] = max(dp[i - 1][1][1], dp[i - 1][0][1] - prices[i])
         dp[i][1][2] = float('-inf')
     return max(dp[-1][0])
-print(maxProfit_2([3,3,5,0,0,3,1,4]))
+# print(maxProfit_2([3,3,5,0,0,3,1,4]))
 
 
 def maxProfit_k(prices, k=2):
@@ -151,5 +151,82 @@ def maxProfit_k(prices, k=2):
             max_profit = max(max_profit, dp[-1][k][0])
         return max_profit
 
-print(maxProfit_k([3,2,6,5,0,3], k = 3))
+# print(maxProfit_k([3,2,6,5,0,3], k = 3))
 
+
+def maxProfit_freeze(prices):
+    """
+    含有冷冻期, 冷冻期为1天
+    :param prices:
+    :return:
+    """
+    if not prices: return 0
+    dp = [[0, 0, 0] for _ in range(len(prices))]
+    dp[0][0] = 0  # 第一天结束不持股且不进入冷冻期
+    dp[0][1] = float('-inf')  # 当天结束不持股进入冷冻期
+    dp[0][2] = -prices[0]  # 当天结束持股
+
+    for i in range(1, len(prices)):
+        dp[i][0] = max(dp[i-1][0], dp[i-1][1])
+        dp[i][1] = dp[i-1][2] + prices[i]
+        dp[i][2] = max(dp[i-1][2], dp[i-1][0]-prices[i])
+    return max(dp[-1][0], dp[-1][1])   # max(dp[-1])
+
+# print(maxProfit_freeze([1,2,3,0,2]))
+
+
+def maxProfit_fee(prices, fee):
+    """
+    含有手续费, 不限交易次数
+    :param prices:
+    :return:
+    """
+    if not prices: return 0
+    dp = [[0, 0] for _ in range(len(prices))]
+    dp[0][0] = 0
+    dp[0][1] = -prices[0]
+
+    for i in range(1, len(prices)):
+        dp[i][0] = max(dp[i-1][0], dp[i-1][1]+prices[i]-fee)
+        dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i])
+    return dp[-1][0]
+
+
+def maxProfit_fee_sim(prices, fee):
+    """
+    进行空间压缩
+    :param prices:
+    :param fee:
+    :return:
+    """
+    if not prices: return 0
+    dp = [0, -prices[0]]
+    for i in range(1, len(prices)):
+        dp[0] = max(dp[0], dp[1]+prices[i]-fee)
+        dp[1] = max(dp[1], dp[0]-prices[i])
+    return dp[0]
+
+
+class StockSpanner:
+    """
+    股票跨度问题
+    """
+    def __init__(self):
+        self.stock = []
+
+    def next(self, price):
+        cnt = 1
+        while self.stock and self.stock[-1][0] <= price:
+            cnt += self.stock.pop()[1]
+
+        self.stock.append((price, cnt))
+        return cnt
+
+
+spanner = StockSpanner()
+prices = [100, 80, 60, 70, 60, 75, 85]  # [100],[80],[60],[70],[60],[75],[85]
+while prices:
+    try:
+        print(spanner.next(prices.pop(0)))
+    except StopIteration:
+        break
